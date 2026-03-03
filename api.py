@@ -4,13 +4,12 @@ def assign_donation_id(org):
     id = ""
     for x in range(6):
         id += str(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
-    res = requests.get(f"https://hcb.hackclub.com/api/v3/organizations/{org}/donations")
+    res = requests.get(f"https://hcb.hackclub.com/api/v3/organizations/{org}/")
     donations = res.json()
     for d in donations:
         donor = d["donor"]["name"]
-        if d in donor:
-            if id in d["donor"]["name"]:
-                return assign_donation_id(org)
+        if id in donor:
+            return assign_donation_id(org)
     return id
 
 def check_donation(org, id):
@@ -26,12 +25,14 @@ def check_donation(org, id):
 
 def get_organization_name(org):
     res = requests.get(f"https://hcb.hackclub.com/api/v3/organizations/{org}")
+    if res.status_code != 200:
+        return False, None
     info = res.json()
     name = info["name"]
     # https://hcb.hackclub.com/docs/api/v3/operations/get-a-single-organization
     # for some reason, name is an optional field, so i have to
     # check if it exists before returning it
     if name:
-        return name
+        return True, name
     else:
-        return org
+        return True, org
