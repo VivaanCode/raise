@@ -1,8 +1,19 @@
-<h1>Donate to {{ organization }}</h1>
-<h3>Referred by: {{ referrer }}</h3>
+<script>
+    const url = new URL(window.location.href);
+    const searchParams = url.searchParams;
+    const toRemove = ["name", "email", "amount"];
 
-<p>If you would like to support your referrer, include this ID in your <b>donation name</b><br>
-<a target="_blank " href="https://hcb.hackclub.com/donations/start/{{ org_id }}">Start a Donation</a>
-<br><b>Make sure to use this id in the donation name, not the message field.</b></p>
-<p>Donation ID: {{ id }}</p>
-<p>Example:<br><i>Vivaan Sawhney {{ id }}</i></p>
+    name = searchParams.get("name");
+    email = searchParams.get("email");
+    amount_cents = (parseInt(searchParams.get("amount")) * 100).toString();
+
+    if (!name || !email || !amount_cents) {
+        window.location.replace("/org/{{ org_id }}");
+    }
+
+    toRemove.forEach(param => {
+        searchParams.delete(param);
+    });
+
+    window.history.replaceState(null, '', url.toString());
+</script>

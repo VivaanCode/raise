@@ -1,0 +1,10 @@
+<h1>Donate to {{ organization }}</h1>
+<h3>Referred by: {{ referrer }}</h3>
+
+<form action="/org/{{ org_id }}/donate" method="GET">
+    <input type="hidden" name="referrer" value="{{ referrer }}">
+    <input type="text" name="name" id="name" placeholder="Your Name" required>
+    <input type="email" name="email" id="email" placeholder="Your Email" required>
+    <input type="number" name="amount" id="amount" placeholder="50" required> <label for="amount">$</label>
+    <button type="submit">Start a Donation</button>
+</form>
