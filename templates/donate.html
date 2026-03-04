@@ -1,15 +1,7 @@
 <script>
     const url = new URL(window.location.href);
     const searchParams = url.searchParams;
-    const toRemove = ["name", "email", "amount"];
-
-    name = searchParams.get("name");
-    email = searchParams.get("email");
-    amount_cents = (parseInt(searchParams.get("amount")) * 100).toString();
-
-    if (!name || !email || !amount_cents) {
-        window.location.replace("/org/{{ org_id }}");
-    }
+    const toRemove = ["name", "email", "amount", "referrer"];
 
     toRemove.forEach(param => {
         searchParams.delete(param);
