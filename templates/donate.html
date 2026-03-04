@@ -3,9 +3,20 @@
     const searchParams = url.searchParams;
     const toRemove = ["name", "email", "amount", "referrer"];
 
-    toRemove.forEach(param => {
-        searchParams.delete(param);
+    document.addEventListener("DOMContentLoaded", () => {
+        toRemove.forEach(param => {
+            searchParams.delete(param);
+        });
     });
+
 
     window.history.replaceState(null, '', url.toString());
 </script>
+
+<iframe src="https://hcb.hackclub.com/donations/start/{{org_id}}?name={{name}} [{{id}}]&email={{email}}&amount={{amount_cents}}" frameborder="0"></iframe>
+<style>
+    iframe {
+        width: 100%;
+        height: 100vh;
+    }
+</style>
