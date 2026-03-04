@@ -19,7 +19,7 @@ def donate(id):
     if not referrer:
         return redirect("https://hcb.hackclub.com/donations/start/" + id)
     
-    return render_template("donate.html", organization=org_name, referrer=referrer, id=donation_id)
+    return render_template("donate.html", organization=org_name, referrer=referrer, id=donation_id, org_id=id)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -4,11 +4,11 @@ def assign_donation_id(org):
     id = ""
     for x in range(6):
         id += str(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
-    res = requests.get(f"https://hcb.hackclub.com/api/v3/organizations/{org}/")
+    res = requests.get(f"https://hcb.hackclub.com/api/v3/organizations/{org}/donations")
     donations = res.json()
     for d in donations:
         donor = d["donor"]["name"]
-        if id in donor:
+        if id.lower() in donor.lower():
             return assign_donation_id(org)
     return id
 
