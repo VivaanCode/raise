@@ -1,20 +1,42 @@
-<script>
-    const url = new URL(window.location.href);
-    const searchParams = url.searchParams;
-    const toRemove = ["name", "email", "amount", "referrer"];
+<div class="text_container">
+    <h1>Hey there!</h1>
+    <p>Lorem ipsum dolor sit amet.</p>
+</div>
 
-    document.addEventListener("DOMContentLoaded", () => {
-        toRemove.forEach(param => {
-            searchParams.delete(param);
-        });
-    });
+<div class="embed_container">
+    <iframe 
+    src="https://hcb.hackclub.com/donations/start/{{org_id}}?name={{name}} [{{id}}]&email={{email}}&amount={{amount_cents}}" 
+    frameborder="0"
+    sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-scripts allow-same-origin allow-top-navigation allow-downloads allow-downloads-without-user-activation">
+    <!-- idrk what to do here i just allowed everything that autocomplete wanted me to -->
+    </iframe>
+</div>
 
-
-    window.history.replaceState(null, '', url.toString());
-</script>
-
-<iframe src="https://hcb.hackclub.com/donations/start/{{org_id}}?name={{name}} [{{id}}]&email={{email}}&amount={{amount_cents}}" frameborder="0"></iframe>
 <style>
+    body {
+        margin: 0;
+        background: #17171d;
+        display: flex;
+        min-height: 100vh;
+
+        /* copied this from hcb website <3 */
+        font-family: system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Fira Sans,Oxygen,Ubuntu,Helvetica Neue,sans-serif;
+        color: rgb(224, 230, 237);
+    }
+    .embed_container {
+        display: flex;
+        justify-content: flex-end;
+        width: 65%;
+    }
+    .text_container {
+        display:flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex-direction: column;
+        height:100vh;
+        width: 35%;
+    }
     iframe {
         width: 100%;
         height: 100vh;
