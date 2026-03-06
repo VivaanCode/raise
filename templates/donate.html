@@ -1,15 +1,56 @@
+<script>
+    window.blurTriggered = false;
+
+    window.addEventListener('blur', function() {
+        window.blurTriggered = true;
+        stopTimedModal();
+    });
+
+    window.addEventListener('load', function() {
+        stopTimedModal();
+        window.timedModal = setTimeout(function() {
+            if (!window.blurTriggered) {
+                const modal = document.getElementById('popup-blocked-modal');
+                if (modal) {
+                    modal.classList.add('show');
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+            }
+        }, 20000);
+    });
+
+    function stopTimedModal() {
+        if (window.timedModal) {
+            clearTimeout(window.timedModal);
+            window.timedModal = null;
+        }
+    }
+
+    function closePopupBlockedModal() {
+        const modal = document.getElementById('popup-blocked-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    }
+</script>
+
 <div class="text_container">
     <h1>Hey there!</h1>
-    <p>Lorem ipsum dolor sit amet.</p>
+    <p>You may have noticed that there is an ID in your name. You <b>have</b> to leave this ID in your name if you want to support the person who sent you their donate link! <br> If you have to change any information in this form, please use your browser back button to fill it on the previous page rather than changing the information directly on right side of this page.</p>
 </div>
 
 <div class="embed_container">
     <iframe 
     src="https://hcb.hackclub.com/donations/start/{{org_id}}?name={{name}} [{{id}}]&email={{email}}&amount={{amount_cents}}" 
-    frameborder="0"
-    sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-scripts allow-same-origin allow-top-navigation allow-downloads allow-downloads-without-user-activation">
-    <!-- idrk what to do here i just allowed everything that autocomplete wanted me to -->
-    </iframe>
+    frameborder="0"></iframe>
+</div>
+
+<div id="popup-blocked-modal" class="modal_overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="popup-blocked-title" onclick="closePopupBlockedModal()">
+    <div class="modal_card" onclick="event.stopPropagation()">
+        <h2 id="popup-blocked-title">Google Pay not working?</h2>
+        <p>Your popups may be blocked! Please turn them on in your browser.</p>
+    </div>
 </div>
 
 <style>
@@ -40,5 +81,39 @@
     iframe {
         width: 100%;
         height: 100vh;
+    }
+    .modal_overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1000;
+        padding: 1rem;
+    }
+    .modal_overlay.show {
+        display: flex;
+    }
+    .modal_card {
+        background: #23242d;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 1rem;
+        max-width: 24rem;
+        width: 100%;
+        padding: 1.25rem;
+        text-align: left;
+    }
+    .modal_card h2 {
+        margin: 0 0 0.4rem;
+        font-size: 1.2rem;
+    }
+    .modal_card p {
+        margin: 0;
+        color: rgb(194, 202, 211);
     }
 </style>
