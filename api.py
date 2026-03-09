@@ -3,6 +3,12 @@ import psycopg2
 import bcrypt
 import requests, random
 from datetime import timezone
+import dotenv
+
+if not os.getenv("DATABASE_URL"):
+    dotenv.load_dotenv()
+    if not os.getenv("DATABASE_URL"):
+        raise Exception("Assign the DATABASE_URL enviormment variable.")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 conn = None
@@ -85,6 +91,7 @@ def get_organization_name(org):
 
 def create_fundraiser(org, fundraiser_name, fundraiser_description, goal_cents, length_days, fundraiser_password):
     password_hash = bcrypt.hashpw(fundraiser_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    fundraiser_id = assign_fundraiser_id(org)
 
     orgNameSuccess, orgName = get_organization_name(org)
     if not orgNameSuccess:
@@ -101,23 +108,23 @@ def create_fundraiser(org, fundraiser_name, fundraiser_description, goal_cents, 
                 INSERT INTO fundraisers (id, org, fundraiser_name, end_time, goal_cents, password_hash)
                 VALUES (%s, %s, %s, NOW() + INTERVAL '%s days', %s, %s)
                 """,
-                (fundraiser_name, org, fundraiser_name, length_days, goal_cents, password_hash)
+                (fundraiser_id, org, fundraiser_name, length_days, goal_cents, password_hash)
             )
         conn.commit()
-        return True, assign_fundraiser_id(org)
+        return True, fundraiser_id
     except psycopg2.InterfaceError as e:
         #print(e)
         dbInit()
         return create_fundraiser(org, fundraiser_name, fundraiser_description, goal_cents, length_days, fundraiser_password)
     
-def check_fundraiser_password(org, password, fundraiser_name):
+def check_fundraiser_password(password, fundraiser_id):
     try:
         with conn.cursor() as c:
             c.execute(
                 """
-                SELECT password_hash FROM fundraisers WHERE org = %s AND fundraiser_name = %s
+                SELECT password_hash FROM fundraisers WHERE id = %s
                 """,
-                (org, fundraiser_name)
+                (fundraiser_id,)
             )
             result = c.fetchone()
             if result:
@@ -127,7 +134,7 @@ def check_fundraiser_password(org, password, fundraiser_name):
     except psycopg2.InterfaceError as e:
         #print(e)
         dbInit()
-        return check_fundraiser_password(org, password, fundraiser_name)
+        return check_fundraiser_password(password, fundraiser_id)
     
 def get_fundraiser(id):
     try:
