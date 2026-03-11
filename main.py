@@ -19,7 +19,7 @@ def org(id):
     
     return render_template("org.html", organization=org_name, referrer=referrer, org_id=id)
 
-@app.route("/org/<id>/donate")
+@app.route("/org/<id>/donate", methods=["GET", "POST"])
 def org_donate(id):
     outcome, org_name = api.get_organization_name(id)
     if not outcome:
@@ -52,6 +52,23 @@ def org_donate(id):
                            email=email, 
                            amount_cents=amount_cents, 
                            amount=amount)
+
+@app.route("/donate/<id>/success")
+def donate_success(id):
+    outcome, donation_info = api.get_donation_info(id)
+    if not outcome:
+        return "Donation not found", 404
+    
+    return render_template("success.html", 
+                           organization=donation_info["organization_name"], 
+                           referrer=donation_info["referrer"], 
+                           name=donation_info["name"], 
+                           email=donation_info["email"], 
+                           amount=donation_info["amount"])
+
+@app.route("/api/create_fundraiser", methods=["POST"])
+def create_fundraiser():
+    pass
 
 if __name__ == "__main__":
     app.run(debug=True)

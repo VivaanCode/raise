@@ -27,10 +27,72 @@ def dbInit():
                 fundraiser_name text NOT NULL,
                 end_time timestamptz NOT NULL,
                 goal_cents integer NOT NULL,
-                password_hash text NOT NULL)
+                password_hash text NOT NULL,
+                users jsonb NOT NULL DEFAULT '[]'::jsonb,
+                donations jsonb NOT NULL DEFAULT '[]'::jsonb)
             """
         )
     conn.commit()
+
+# def donationIdDbInit():
+#     try:
+#         with conn.cursor() as c:
+#             c.execute(
+#                 """
+#                 CREATE TABLE IF NOT EXISTS ids (
+#                     id text PRIMARY KEY,
+#                     org text NOT NULL)
+#                 """
+#             )
+#         conn.commit()
+#     except psycopg2.InterfaceError as e:
+#         dbInit()
+#         donationIdDbInit()
+
+def add_donation(fundraiser_id, donation_id, name, email, referrer):
+    success, fundraiser_info = get_fundraiser(fundraiser_id)
+    if not success:
+        return False, "Fundraiser not found"
+    try:
+        with conn.cursor() as c:
+            c.execute(
+                """
+                UPDATE fundraisers
+                SET donations = array_append(donations, %s)
+                WHERE id = %s
+                """,
+                ({"id": donation_id, "name": name, "email": email, "referrer": referrer, "fulfilled": False, "amount_cents": 0}, fundraiser_id)
+            )
+        conn.commit()
+    except psycopg2.InterfaceError as e:
+        dbInit()
+        add_donation(fundraiser_id, donation_id, name, email, referrer)
+    return True
+
+def mark_donation_fulfilled(fundraiser_id, donation_id, amount_cents):
+    success, fundraiser_info = get_fundraiser(fundraiser_id)
+    if not success:
+        return False
+    donations = fundraiser_info["donations"]
+    for d in donations:
+        if d["id"] == donation_id:
+            d["fulfilled"] = True
+            d["amount_cents"] = amount_cents
+    try:
+        with conn.cursor() as c:
+            c.execute(
+                """
+                UPDATE fundraisers
+                SET donations = %s
+                WHERE id = %s
+                """,
+                (donations, fundraiser_id)
+            )
+        conn.commit()
+    except psycopg2.InterfaceError as e:
+        dbInit()
+        mark_donation_fulfilled(fundraiser_id, donation_id)
+    return True
 
 def assign_fundraiser_id(org):
     id = ""
