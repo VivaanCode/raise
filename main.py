@@ -29,12 +29,12 @@ def org_donate(id):
     amount = request.args.get("amount")
     name = request.args.get("name")
     email = request.args.get("email")
-    donation_id = api.assign_donation_id(id)
 
     if not referrer or not amount or not name or not email:
         return redirect("/org/" + id)
     
     try:
+        success, donation_id = api.add_donation(id, name, email, referrer)
         amount = int(amount)
     except:
         return redirect("/org/" + id)
@@ -68,7 +68,29 @@ def donate_success(id):
 
 @app.route("/api/create_fundraiser", methods=["POST"])
 def create_fundraiser():
-    pass
+    try:
+        success, fundraiser_id = api.create_fundraiser(request.form["org_id"], request.form["fundraiser_name"], request.form["end_time"], int(request.form["goal_cents"]), request.form["password"])
+        if success:
+            return "Fundraiser created successfully", 201
+    except Exception as e:
+        return f"Error creating fundraiser: {str(e)}", 400
+    return "Error creating fundraiser", 400
+
+@app.route("/api/fundraiser/<id>/add_donation", methods=["POST"])
+def add_donation(id):
+    try:
+        success, donation_id = api.add_donation(id, request.form["name"], request.form["email"], request.form["referrer"])
+        if success:
+            return donation_id, 200
+    except Exception as e:
+        return str(e), 400
+    return "Error", 400 
+
+@app.route("/create_fundraiser")
+def create_fundraiser_page():
+    if request.args.org:
+        return render_template("create_fundraiser.html", org_id=request.args.org)
+    return render_template("create_fundraiser.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

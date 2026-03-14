@@ -1,5 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
 <h1>Donate to {{ organization }}</h1>
 <h3>Referred by: {{ referrer }}</h3>
+<h3>Goal: ${{ "%.2f" | format(goal_cents / 100) }}</h3>
 
 <form action="/org/{{ org_id }}/donate" method="GET">
     <input type="hidden" name="referrer" value="{{ referrer }}">
@@ -8,3 +13,5 @@
     <input type="number" name="amount" id="amount" placeholder="50" required> <label for="amount">$</label>
     <button type="submit">Start a Donation</button>
 </form>
+
+{% endblock %}

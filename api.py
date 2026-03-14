@@ -2,7 +2,7 @@ import os
 import psycopg2
 import bcrypt
 import requests, random
-from datetime import timezone
+from datetime import timezone, datetime
 import dotenv
 
 if not os.getenv("DATABASE_URL"):
@@ -34,23 +34,9 @@ def dbInit():
         )
     conn.commit()
 
-# def donationIdDbInit():
-#     try:
-#         with conn.cursor() as c:
-#             c.execute(
-#                 """
-#                 CREATE TABLE IF NOT EXISTS ids (
-#                     id text PRIMARY KEY,
-#                     org text NOT NULL)
-#                 """
-#             )
-#         conn.commit()
-#     except psycopg2.InterfaceError as e:
-#         dbInit()
-#         donationIdDbInit()
-
-def add_donation(fundraiser_id, donation_id, name, email, referrer):
-    success, fundraiser_info = get_fundraiser(fundraiser_id)
+def add_donation(fundraiser_id, name, email, referrer):
+    success, fundraiser_info = get_fundraiser_info(fundraiser_id)
+    donation_id = assign_donation_id(fundraiser_info["org"])
     if not success:
         return False, "Fundraiser not found"
     try:
@@ -61,16 +47,16 @@ def add_donation(fundraiser_id, donation_id, name, email, referrer):
                 SET donations = array_append(donations, %s)
                 WHERE id = %s
                 """,
-                ({"id": donation_id, "name": name, "email": email, "referrer": referrer, "fulfilled": False, "amount_cents": 0}, fundraiser_id)
+                ({"id": donation_id, "name": name, "email": email, "referrer": referrer, "fulfilled": False, "amount_cents": 0, "time_created": datetime.now(timezone.utc)}, fundraiser_id)
             )
         conn.commit()
     except psycopg2.InterfaceError as e:
         dbInit()
-        add_donation(fundraiser_id, donation_id, name, email, referrer)
-    return True
+        add_donation(fundraiser_id, name, email, referrer)
+    return True, donation_id
 
 def mark_donation_fulfilled(fundraiser_id, donation_id, amount_cents):
-    success, fundraiser_info = get_fundraiser(fundraiser_id)
+    success, fundraiser_info = get_fundraiser_info(fundraiser_id)
     if not success:
         return False
     donations = fundraiser_info["donations"]
@@ -91,7 +77,7 @@ def mark_donation_fulfilled(fundraiser_id, donation_id, amount_cents):
         conn.commit()
     except psycopg2.InterfaceError as e:
         dbInit()
-        mark_donation_fulfilled(fundraiser_id, donation_id)
+        mark_donation_fulfilled(fundraiser_id, donation_id, amount_cents)
     return True
 
 def assign_fundraiser_id(org):
@@ -198,7 +184,7 @@ def check_fundraiser_password(password, fundraiser_id):
         dbInit()
         return check_fundraiser_password(password, fundraiser_id)
     
-def get_fundraiser(id):
+def get_fundraiser_info(id):
     try:
         with conn.cursor() as c:
             c.execute(
@@ -216,4 +202,46 @@ def get_fundraiser(id):
     except psycopg2.InterfaceError as e:
         #print(e)
         dbInit()
-        return get_fundraiser(id)
+        return get_fundraiser_info(id)
+
+def get_fundraiser_cents(id):
+    try:
+        with conn.cursor() as c:
+            c.execute(
+                """
+                SELECT donations FROM fundraisers WHERE id = %s
+                """,
+                (id,)
+            )
+            result = c.fetchone()
+            if result:
+                donations = result[0]
+                total_cents = 0
+                for d in donations:
+                    if d["fulfilled"]:
+                        total_cents += d["amount_cents"]
+                return True, total_cents
+            else:
+                return False, None
+    except psycopg2.InterfaceError as e:
+        dbInit()
+        return get_fundraiser_cents(id)
+    
+
+def get_fundraiser_donations(id):
+    try:
+        with conn.cursor() as c:
+            c.execute(
+                """
+                SELECT donations FROM fundraisers WHERE id = %s
+                """,
+                (id,)
+            )
+            result = c.fetchone()
+            if result:
+                return True, result[0]
+            else:
+                return False, None
+    except psycopg2.InterfaceError as e:
+        dbInit()
+        return get_fundraiser_donations(id)
